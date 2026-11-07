@@ -3,18 +3,30 @@
 
 import { useState } from "react";
 import { Bell, ChevronDown, UserRound, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const pathname = usePathname();
+
+  const pageName =
+    pathname === "/"
+      ? "Dashboard"
+      : pathname === "/orders"
+        ? "Pesanan saya"
+        : pathname === "/messages"
+          ? "Pesan"
+          : pathname === "/balance"
+            ? "Saldo saya"
+            : "Halaman";
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-gray-500">Workspace</span>
-        <span className="text-gray-400">/</span>
         <span className="font-medium text-gray-900">
-          Pesanan saya
+          {pageName}
         </span>
       </div>
 
