@@ -17,8 +17,7 @@ type SurveyorForm = {
     province: string;
     city: string;
     district: string;
-    surveyArea: string;
-    experience: string;
+    surveyDistricts: string[];
 };
 
 const REGION_API =
@@ -32,8 +31,7 @@ const initialForm: SurveyorForm = {
     province: "",
     city: "",
     district: "",
-    surveyArea: "",
-    experience: "",
+    surveyDistricts: [],
 };
 
 const inputClass =
@@ -212,6 +210,7 @@ export default function RegisterSurveyorPage() {
             ...prev,
             city: selectedCity?.name ?? "",
             district: "",
+            surveyDistricts: [],
         }));
 
         setError("");
@@ -257,6 +256,24 @@ export default function RegisterSurveyorPage() {
         setForm((prev) => ({
             ...prev,
             district: selectedDistrict?.name ?? "",
+        }));
+    }
+
+    // =========================
+    // Survey area checkbox
+    // =========================
+
+    function handleSurveyDistrictChange(
+        districtName: string,
+        checked: boolean
+    ) {
+        setForm((prev) => ({
+            ...prev,
+            surveyDistricts: checked
+                ? [...prev.surveyDistricts, districtName]
+                : prev.surveyDistricts.filter(
+                      (district) => district !== districtName
+                  ),
         }));
     }
 
@@ -308,7 +325,12 @@ export default function RegisterSurveyorPage() {
         setError("");
 
         if (!provinceId || !cityId || !districtId) {
-            setError("Silakan lengkapi wilayah survei.");
+            setError("Silakan lengkapi domisili.");
+            return;
+        }
+
+        if (form.surveyDistricts.length === 0) {
+            setError("Silakan pilih minimal satu kecamatan area survei.");
             return;
         }
 
@@ -336,6 +358,11 @@ export default function RegisterSurveyorPage() {
                 provinceId,
                 cityId,
                 districtId,
+                coverageAreas: {
+                    province: form.province,
+                    city: form.city,
+                    districts: form.surveyDistricts,
+                },
                 ktp,
                 selfie,
                 consent,
@@ -359,22 +386,24 @@ export default function RegisterSurveyorPage() {
         <main className="min-h-screen bg-gray-100 px-3 py-5 sm:px-5 sm:py-8">
             <div className="mx-auto w-full max-w-3xl">
 
-                {/* =========================
+            {/* =========================
             HEADER
             ========================= */}
 
                 <header className="mb-4 rounded-2xl bg-white p-5 shadow-sm sm:p-7">
 
-                    <Link href="/" className="inline-flex">
-                        <Image
-                            src="/ckin-logo.png"
-                            alt="CKIN Cari Kost"
-                            width={180}
-                            height={90}
-                            priority
-                            className="h-auto w-32 object-contain sm:w-36"
-                        />
-                    </Link>
+                    <div className="mb-5">
+                         <Link href="/" className="-ml-7 inline-flex items-center">
+                            <Image
+                                src="/ckin-logo.png"
+                                alt="CKIN Cari Kost"
+                                width={180}
+                                height={90}
+                                priority
+                                className="h-auto w-32 object-contain sm:w-36"
+                            />
+                        </Link>
+                    </div>
 
                     {/* Role Selection */}
                     <div className="mb-5">
@@ -468,11 +497,6 @@ export default function RegisterSurveyorPage() {
                         <h1 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl">
                             Daftar sebagai Surveyor
                         </h1>
-
-                        <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                            Bantu calon penghuni menemukan kost yang tepat
-                            dengan memberikan informasi kost yang terpercaya.
-                        </p>
 
                     </div>
 
@@ -601,7 +625,7 @@ export default function RegisterSurveyorPage() {
 
 
                 {/* =========================
-                SURVEY AREA
+                DOMISILI AREA
                 ========================= */}
 
                     <section>
@@ -609,7 +633,7 @@ export default function RegisterSurveyorPage() {
                         <div className="mb-4">
 
                             <h2 className="text-base font-semibold text-gray-900">
-                                Wilayah Survei
+                                Domisili
                             </h2>
 
                             <p className="mt-1 text-xs text-gray-500">
@@ -728,22 +752,51 @@ export default function RegisterSurveyorPage() {
                             </div>
 
                             {/* Survey Area */}
-                            <div>
+                            <div className="sm:col-span-2">
 
-                                <label htmlFor="surveyArea" className={labelClass}>
+                                <label className={labelClass}>
                                     Area Survei
                                 </label>
 
-                                <input
-                                    id="surveyArea"
-                                    name="surveyArea"
-                                    type="text"
-                                    placeholder="Contoh: sekitar kampus"
-                                    value={form.surveyArea}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                    required
-                                />
+                                <p className="mb-3 text-xs text-gray-500">
+                                    Pilih satu atau beberapa kecamatan yang dapat kamu jangkau.
+                                </p>
+
+                                {!cityId ? (
+                                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                                        Pilih kota/kabupaten terlebih dahulu.
+                                    </div>
+                                ) : loadingDistricts ? (
+                                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                                        Memuat daftar kecamatan...
+                                    </div>
+                                ) : districts.length === 0 ? (
+                                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                                        Daftar kecamatan belum tersedia.
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-x-4 rounded-xl border border-gray-200 p-2 sm:grid-cols-2">
+                                        {districts.map((district) => (
+                                            <label
+                                                key={district.id}
+                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm text-gray-700 transition hover:bg-teal-50"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.surveyDistricts.includes(district.name)}
+                                                    onChange={(event) =>
+                                                        handleSurveyDistrictChange(
+                                                            district.name,
+                                                            event.target.checked
+                                                        )
+                                                    }
+                                                    className="mt-0.5 h-4 w-4 shrink-0 accent-teal-700"
+                                                />
+                                                <span>{district.name}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
 
                             </div>
 
