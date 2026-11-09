@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { registerSurveyorSchema } from "../../schemas/registerSchema";
+import { useRouter } from "next/navigation";
 
 type Region = {
     id: string;
@@ -73,6 +75,10 @@ export default function RegisterSurveyorPage() {
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
+    const [success, setSuccess] = useState("");
+
+    const router = useRouter();
+
     const [year, setYear] = useState<number | null>(null);
 
     useEffect(() => {
@@ -118,6 +124,16 @@ export default function RegisterSurveyorPage() {
             active = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (!success) return;
+
+        const timeout = setTimeout(() => {
+            router.push("/login");
+        }, 2000);
+
+        return () => clearTimeout(timeout);
+    }, [success, router]);
 
     // =========================
     // Form change
@@ -272,8 +288,8 @@ export default function RegisterSurveyorPage() {
             surveyDistricts: checked
                 ? [...prev.surveyDistricts, districtName]
                 : prev.surveyDistricts.filter(
-                      (district) => district !== districtName
-                  ),
+                    (district) => district !== districtName
+                ),
         }));
     }
 
@@ -318,11 +334,26 @@ export default function RegisterSurveyorPage() {
     // =========================
 
     async function handleSubmit(
-        event: React.FormEvent<HTMLFormElement>
+        event: React.SyntheticEvent<HTMLFormElement>
     ) {
         event.preventDefault();
 
         setError("");
+
+        const validation = registerSurveyorSchema.safeParse({
+            name: form.name,
+            email: form.email,
+            phone: form.whatsapp,
+            password: form.password,
+            provinceId,
+            province: form.province,
+            cityId,
+            city: form.city,
+            districtId,
+            district: form.district,
+            surveyDistricts: form.surveyDistricts,
+        });
+
 
         if (!provinceId || !cityId || !districtId) {
             setError("Silakan lengkapi domisili.");
@@ -347,53 +378,87 @@ export default function RegisterSurveyorPage() {
         setSubmitting(true);
 
         try {
-            // TODO:
-            // Hubungkan ke API registrasi Surveyor CKIN.
-            // Upload KTP dan selfie menggunakan FormData.
-            // Jangan menyimpan password atau file identitas
-            // hanya di state frontend.
+            const formData = new FormData();
 
-            console.log("Data pendaftaran:", {
-                ...form,
-                provinceId,
-                cityId,
-                districtId,
-                coverageAreas: {
-                    province: form.province,
-                    city: form.city,
-                    districts: form.surveyDistricts,
-                },
-                ktp,
-                selfie,
-                consent,
-            });
+            formData.append("name", form.name);
+            formData.append("email", form.email);
+            formData.append("whatsapp", form.whatsapp);
+            formData.append("password", form.password);
 
-            setError(
-                "Form sudah tervalidasi. Registrasi backend belum dihubungkan."
+            formData.append("provinceId", provinceId);
+            formData.append("province", form.province);
+
+            formData.append("cityId", cityId);
+            formData.append("city", form.city);
+
+            formData.append("districtId", districtId);
+            formData.append("district", form.district);
+
+            formData.append(
+                "surveyDistricts",
+                JSON.stringify(form.surveyDistricts)
             );
+
+            formData.append("ktp", ktp);
+            formData.append("selfie", selfie);
+
+            const response = await fetch(
+                "/api/register-surveyor",
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
+
+            const responseText = await response.text();
+
+            let result;
+
+            try {
+                result = JSON.parse(responseText);
+            } catch {
+                console.error("API response bukan JSON:", responseText);
+
+                throw new Error(
+                    "Server mengalami kesalahan. Silakan coba kembali."
+                );
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || "Registrasi gagal."
+                );
+            }
+
+            setError("");
+            setSuccess("Registrasi berhasil. Mengalihkan ke halaman login...");
+
         } catch (error) {
             console.error("Registrasi gagal:", error);
 
             setError(
-                "Pendaftaran belum berhasil. Silakan coba lagi."
+                error instanceof Error
+                    ? error.message
+                    : "Pendaftaran belum berhasil. Silakan coba lagi."
             );
         } finally {
             setSubmitting(false);
         }
+
     }
 
     return (
         <main className="min-h-screen bg-gray-100 px-3 py-5 sm:px-5 sm:py-8">
             <div className="mx-auto w-full max-w-3xl">
 
-            {/* =========================
+                {/* =========================
             HEADER
             ========================= */}
 
                 <header className="mb-4 rounded-2xl bg-white p-5 shadow-sm sm:p-7">
 
                     <div className="mb-5">
-                         <Link href="/" className="-ml-7 inline-flex items-center">
+                        <Link href="/" className="-ml-7 inline-flex items-center">
                             <Image
                                 src="/ckin-logo.png"
                                 alt="CKIN Cari Kost"
@@ -407,7 +472,7 @@ export default function RegisterSurveyorPage() {
 
                     {/* Role Selection */}
                     <div className="mb-5">
-                
+
 
                         <div className="grid grid-cols-2 gap-2.5">
 
@@ -508,11 +573,12 @@ export default function RegisterSurveyorPage() {
                 ========================= */}
 
                 <form
+                    noValidate
                     onSubmit={handleSubmit}
                     className="rounded-2xl bg-white p-5 shadow-sm sm:p-7"
                 >
 
-                {/* =========================
+                    {/* =========================
                 ACCOUNT
                 ========================= */}
 
@@ -624,7 +690,7 @@ export default function RegisterSurveyorPage() {
                     <div className="my-6 border-t border-gray-100" />
 
 
-                {/* =========================
+                    {/* =========================
                 DOMISILI AREA
                 ========================= */}
 
@@ -808,7 +874,7 @@ export default function RegisterSurveyorPage() {
                     <div className="my-6 border-t border-gray-100" />
 
 
-                {/* =========================
+                    {/* =========================
                 VERIFICATION
                 ========================= */}
 
@@ -911,7 +977,7 @@ export default function RegisterSurveyorPage() {
                     <div className="my-6 border-t border-gray-100" />
 
 
-                {/* =========================
+                    {/* =========================
                 CONSENT
                 ========================= */}
 
@@ -940,7 +1006,7 @@ export default function RegisterSurveyorPage() {
                     </section>
 
 
-                {/* =========================
+                    {/* =========================
                 ERROR
                 ========================= */}
 
@@ -953,8 +1019,17 @@ export default function RegisterSurveyorPage() {
                         </div>
                     )}
 
+                    {success && (
+                        <div
+                            role="status"
+                            className="mt-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm leading-relaxed text-green-800"
+                        >
+                            {success}
+                        </div>
+                    )}
 
-                {/* =========================
+
+                    {/* =========================
                 SUBMIT
                 ========================= */}
 
@@ -984,7 +1059,7 @@ export default function RegisterSurveyorPage() {
 
                 </form>
 
-            {/* =========================
+                {/* =========================
             FOOTER
             ========================= */}
 

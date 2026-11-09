@@ -1,9 +1,83 @@
+"use client";
 
+import { useState, type SubmitEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { registerSchema } from "../../schemas/registerSchema";
 
 export default function RegisterPage() {
-  return (
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
+
+  async function handleRegister(
+    event: SubmitEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    setLoading(true);
+    setMessage("");
+    setMessageType("");
+
+    const formData = new FormData(event.currentTarget);
+
+    const name = formData.get("name");
+    const email = formData.get("email");
+    const phone = formData.get("phone");
+    const password = formData.get("password");
+    const agreement = formData.get("agreement");
+
+    const validation = registerSchema.safeParse({
+      name,
+      email,
+      phone,
+      password,
+      agreement: agreement === "on",
+    });
+
+    if (!validation.success) {
+      setMessage(validation.error.issues[0].message);
+      setMessageType("error");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullname: name,
+          email,
+          phone,
+          password,
+          agreement: validation.data.agreement,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Registrasi gagal");
+      }
+
+      window.location.href = "/login";
+
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat registrasi"
+      );
+
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
+  } return (
     <main className="min-h-screen bg-gray-100 p-3 sm:p-4 lg:p-6">
       <div className="mx-auto grid min-h-[calc(100dvh-5rem)] max-w-6xl grid-cols-1 overflow-hidden rounded-2xl bg-white shadow-sm lg:grid-cols-2">
 
@@ -153,7 +227,11 @@ export default function RegisterPage() {
 
 
             {/* Form registrasi */}
-            <form className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
+            <form
+              onSubmit={handleRegister}
+              noValidate
+              className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3"
+            >
 
               {/* Nama lengkap */}
               <div>
@@ -170,7 +248,8 @@ export default function RegisterPage() {
                   name="name"
                   placeholder="Masukkan nama lengkap"
                   autoComplete="name"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
+                  required
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
                 />
               </div>
 
@@ -189,7 +268,9 @@ export default function RegisterPage() {
                   name="email"
                   placeholder="nama@email.com"
                   autoComplete="email"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
+                  required
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
+
                 />
               </div>
 
@@ -208,7 +289,8 @@ export default function RegisterPage() {
                   name="phone"
                   placeholder="+62 812 3456 7890"
                   autoComplete="tel"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
+                  required
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
                 />
               </div>
 
@@ -227,11 +309,13 @@ export default function RegisterPage() {
                   name="password"
                   placeholder="Masukkan kata sandi"
                   autoComplete="new-password"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-100 sm:px-4 sm:py-2.5"
+                  required
+                  minLength={8}
                 />
 
                 <p className="mt-1 text-[10px] text-gray-400 sm:text-xs">
-                  Minimal 8 karakter, gabungkan huruf dan angka.
+                  Minimal 8 karakter
                 </p>
               </div>
 
@@ -242,6 +326,7 @@ export default function RegisterPage() {
                   type="checkbox"
                   name="agreement"
                   className="mt-0.5 accent-teal-800"
+                  required
                 />
 
                 <label
@@ -254,16 +339,31 @@ export default function RegisterPage() {
               </div>
 
               {/* Tombol daftar */}
+
+              {message && (
+                <p
+                  className={`rounded-lg px-3 py-2 text-sm ${messageType === "success"
+                      ? "bg-green-50 text-green-700"
+                      : "bg-red-50 text-red-700"
+                    }`}
+                >
+                  {message}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="w-full rounded-lg bg-teal-900 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-teal-800 sm:py-3 sm:text-sm"
+                disabled={loading}
+                className="w-full rounded-lg bg-teal-900 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60 sm:py-3 sm:text-sm"
               >
-                Buat akun pengguna
+                {loading ? "Sedang membuat akun..." : "Buat akun pengguna"}
               </button>
 
             </form>
 
             {/* Login */}
+
+
             <div className="mt-3 text-center text-[10px] text-gray-500 sm:mt-4 sm:text-xs">
               Sudah punya akun?{" "}
               <Link
