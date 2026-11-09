@@ -14,6 +14,6 @@ export async function GET() {
 
         return Response.json(orders);
     } catch (error) {
-        return errorHandler(Error)
+        return errorHandler(error)
     }
 }

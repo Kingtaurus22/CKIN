@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import Footer from "@/src/components/surveyor/footer";
 import { OrderTypeSurveyor, SurveyorType } from "@/types";
@@ -12,11 +13,13 @@ import {
     SlidersHorizontal,
     ArrowRight
 } from "lucide-react";
+import { formatDate, formatRupiah } from "@/db/helpers/format";
 
 export default function SurveyorDashboard() {
     const [availableOrders, setAvailableOrders] = useState<OrderTypeSurveyor[]>([])
     const [myOrders, setMyOrders] = useState<OrderTypeSurveyor[]>([])
     const [surveyor, setSurveyor] = useState<SurveyorType>();
+
     const [currentMonth, setCurrentMonth] = useState("");
 
     useEffect(() => {
@@ -57,22 +60,6 @@ export default function SurveyorDashboard() {
 
         setCurrentMonth(month);
     }, []);
-
-    function formatDate(date: Date) {
-        return new Date(date).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-        })
-    }
-
-    function formatRupiah(price: number) {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(price)
-    }
 
     // Menghitung order yang sedang berjalan
     const totalOrdersInProgress = myOrders.filter(
@@ -192,68 +179,95 @@ export default function SurveyorDashboard() {
                             </p>
                         </div>
 
-                        <button className="hidden items-center gap-1 text-sm font-semibold text-[#285d54] hover:text-[#43877a] sm:flex">
-                            Lihat semua order <ArrowRight size={16} />
-                        </button>
+                        <Link
+                            href="/surveyor/order-tersedia"
+                            className="inline-flex items-center gap-2 font-semibold text-[#145b4b] transition-colors hover:text-[#0d4036] group"
+                        >
+                            Lihat semua order
+
+                            <ArrowRight
+                                size={20}
+                                className="transition-transform group-hover:translate-x-1"
+                            />
+                        </Link>
                     </div>
 
                     <div className="space-y-3">
-                        {displayedAvailableOrders.map((order) => (
-                            <div
-                                key={order._id}
-                                className="rounded-xl border border-gray-200 bg-white p-5"
-                            >
-                                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                                    {/* Order Information */}
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#e8f1ed] text-sm font-semibold text-[#39786b]">
-                                            {order.customerName
-                                                .split(" ")
-                                                .map((word) => word[0])
-                                                .join("")
-                                                .slice(0, 2) || "👤"}
-                                        </div>
+                        {availableOrders.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+                                <MapPin className="mx-auto mb-3 text-gray-400" size={32} />
 
-                                        <div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="font-medium text-[#263e3a]">
-                                                    {order.surveyLocation.district}, {order.surveyLocation.city}
-                                                </h3>
+                                <h3 className="font-semibold text-gray-700">
+                                    Belum ada order tersedia
+                                </h3>
 
-                                                <span className="rounded-full bg-[#e5f1eb] px-3 py-1 text-xs font-medium text-[#39786b]">
-                                                    ● {order.status === "PAID" ? "Sudah Dibayar" : "PAID"}
-                                                </span>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Saat ini belum ada order yang sesuai dengan area jangkauanmu.
+                                    Silakan cek kembali nanti.
+                                </p>
+                            </div>
+                        ) : (
+                            displayedAvailableOrders.map((order) => (
+                                <div
+                                    key={order._id}
+                                    className="rounded-xl border border-gray-200 bg-white p-5"
+                                >
+                                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                                        {/* Order Information */}
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#e8f1ed] text-sm font-semibold text-[#39786b]">
+                                                {order.customerName
+                                                    .split(" ")
+                                                    .map((word) => word[0])
+                                                    .join("")
+                                                    .slice(0, 2) || "👤"}
                                             </div>
 
-                                            <p className="mt-1 text-xs text-gray-400">
-                                                {order.customerName} · No. Order: {order._id}
+                                            <div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <h3 className="font-medium text-[#263e3a]">
+                                                        {order.surveyLocation.district}, {order.surveyLocation.city}
+                                                    </h3>
 
+                                                    <span className="rounded-full bg-[#e5f1eb] px-3 py-1 text-xs font-medium text-[#39786b]">
+                                                        ● {order.status === "PAID" ? "Sudah Dibayar" : "PAID"}
+                                                    </span>
+                                                </div>
+
+                                                <p className="mt-1 text-xs text-gray-400">
+                                                    {order.customerName} · No. Order: {order._id}
+
+                                                </p>
+
+                                                <p className="mt-2 text-sm text-[#40544f]">
+                                                    {order.kosCount} kos · {order.serviceType === "USER_CHOICE" ? "Pilihan Pengguna" : "Rekomendasi Surveyor"}
+                                                </p>
+
+                                                <p className="mt-2 flex items-center gap-1 text-xs text-gray-400">
+                                                    <CalendarDays size={14} />
+                                                    {formatDate(order.surveyDate)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Price and Button */}
+                                        <div className="flex shrink-0 items-center justify-between gap-4 md:flex-col md:items-end">
+                                            <p className="text-lg font-semibold text-[#263e3a]">
+                                                {formatRupiah(order.pricing)}
                                             </p>
 
-                                            <p className="mt-2 text-sm text-[#40544f]">
-                                                {order.kosCount} kos · {order.serviceType === "USER_CHOICE" ? "Pilihan Pengguna" : "Rekomendasi Surveyor"}
-                                            </p>
-
-                                            <p className="mt-2 flex items-center gap-1 text-xs text-gray-400">
-                                                <CalendarDays size={14} />
-                                                {formatDate(order.surveyDate)}
-                                            </p>
+                                            <Link
+                                                href={`/surveyor/order-tersedia?orderId=${order._id}`}
+                                                className="inline-flex items-center justify-center rounded-xl border border-[#d2e5dc] px-3 py-3 font-semibold text-[#285d54] transition hover:bg-[#e7f1ec] text-sm"
+                                            >
+                                                Lihat & ambil order
+                                            </Link>
                                         </div>
                                     </div>
-
-                                    {/* Price and Button */}
-                                    <div className="flex shrink-0 items-center justify-between gap-4 md:flex-col md:items-end">
-                                        <p className="text-lg font-semibold text-[#263e3a]">
-                                            {formatRupiah(order.pricing)}
-                                        </p>
-
-                                        <button className="rounded-lg border border-[#dce5df] px-4 py-2 text-sm font-semibold text-[#285d54] transition hover:bg-[#e8f1ed]">
-                                            Lihat & ambil order
-                                        </button>
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
+
                     </div>
 
                     <button className="mt-4 flex items-center gap-1 text-sm font-semibold text-[#285d54] sm:hidden">
@@ -317,7 +331,7 @@ export default function SurveyorDashboard() {
                 <div className="flex flex-col justify-between gap-4 p-5 md:flex-row md:items-center">
                     <div>
                         <h2 className="text-lg font-semibold text-[#263e3a]">
-                            Daftar order survei
+                            Daftar order survei yang sudah kamu ambil
                         </h2>
                         <p className="mt-1 text-sm text-gray-500">
                             Perbarui progres dan kirim laporan dari detail order.
@@ -351,54 +365,78 @@ export default function SurveyorDashboard() {
                                 <th className="px-5 py-4 font-medium">Aksi</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            {displayedMyOrders.map((order) => (
-                                <tr
-                                    key={order._id}
-                                    className="border-t border-gray-200 text-sm"
-                                >
-                                    <td className="px-5 py-5">
-                                        <p className="font-semibold text-[#263e3a]">
-                                            {order.customerName}
-                                        </p>
-                                        <p className="mt-1 text-xs text-gray-400">
-                                            {order._id}
-                                        </p>
-                                    </td>
+                            {myOrders.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-5 py-10">
+                                        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+                                            <ClipboardList
+                                                className="mx-auto mb-3 text-gray-400"
+                                                size={32}
+                                            />
 
-                                    <td className="px-5 py-5 text-[#40544f]">
-                                        {order.surveyLocation.district} · {formatDate(order.surveyDate)}
-                                    </td>
+                                            <h3 className="font-semibold text-gray-700">
+                                                Belum ada order survei
+                                            </h3>
 
-                                    <td className="px-5 py-5">
-                                        {order.assignmentStatus === "CANCELLED" ?
-                                            <span className="whitespace-nowrap rounded-full bg-[#f7e3dc] px-3 py-1.5 text-xs font-medium text-[#d13636]">
-                                                ● {order.assignmentStatus === "CANCELLED" ? "Cancel" : ""}
-                                            </span>
-                                            :
-                                            <span className="whitespace-nowrap rounded-full bg-[#e5f1eb] px-3 py-1.5 text-xs font-medium text-[#39786b]">
-                                                ● {order.assignmentStatus === "ASSIGNED" ? "Dalam Proses" : "Laporan Diterima"}
-                                            </span>}
-
-                                    </td>
-
-                                    <td className="px-5 py-5 text-sm text-[#39786b]">
-                                        Sudah dibayar
-                                    </td>
-
-                                    <td className="px-5 py-5">
-                                        <button className="flex items-center gap-1 whitespace-nowrap font-semibold text-[#285d54] hover:text-[#43877a]">
-                                            {order.assignmentStatus === "ASSIGNED"
-                                                ? "Kelola survei"
-                                                : order.assignmentStatus === "COMPLETED"
-                                                    ? "Lihat laporan"
-                                                    : "Lihat Order"}
-                                            <ArrowRight size={15} />
-                                        </button>
+                                            <p className="mt-1 text-sm text-gray-500">
+                                                Kamu belum mengambil order survei.
+                                                Temukan order yang sesuai dengan area jangkauanmu.
+                                            </p>
+                                        </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                displayedMyOrders.map((order) => (
+                                    <tr
+                                        key={order._id}
+                                        className="border-t border-gray-200 text-sm"
+                                    >
+                                        <td className="px-5 py-5">
+                                            <p className="font-semibold text-[#263e3a]">
+                                                {order.customerName}
+                                            </p>
+                                            <p className="mt-1 text-xs text-gray-400">
+                                                {order._id}
+                                            </p>
+                                        </td>
+
+                                        <td className="px-5 py-5 text-[#40544f]">
+                                            {order.surveyLocation.district} · {formatDate(order.surveyDate)}
+                                        </td>
+
+                                        <td className="px-5 py-5">
+                                            {order.assignmentStatus === "CANCELLED" ? (
+                                                <span className="whitespace-nowrap rounded-full bg-[#f7e3dc] px-3 py-1.5 text-xs font-medium text-[#d13636]">
+                                                    ● Cancel
+                                                </span>
+                                            ) : (
+                                                <span className="whitespace-nowrap rounded-full bg-[#e5f1eb] px-3 py-1.5 text-xs font-medium text-[#39786b]">
+                                                    ● {order.assignmentStatus === "ASSIGNED"
+                                                        ? "Dalam Proses"
+                                                        : "Laporan Diterima"}
+                                                </span>
+                                            )}
+                                        </td>
+
+                                        <td className="px-5 py-5 text-sm text-[#39786b]">
+                                            Sudah dibayar
+                                        </td>
+
+                                        <td className="px-5 py-5">
+                                            <button className="flex items-center gap-1 whitespace-nowrap font-semibold text-[#285d54] hover:text-[#43877a]">
+                                                {order.assignmentStatus === "ASSIGNED"
+                                                    ? "Kelola survei"
+                                                    : order.assignmentStatus === "COMPLETED"
+                                                        ? "Lihat laporan"
+                                                        : "Lihat Order"}
+
+                                                <ArrowRight size={15} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
