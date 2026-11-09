@@ -1,38 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import Link from "next/link";
+
 import {
-    LayoutDashboard,
-    MapPin,
-    ClipboardList,
-    MessageSquare,
-    Wallet,
-    Settings,
-    Headset,
-    Bell,
-    ChevronDown,
-    ChevronUp,
     ArrowLeft,
     ArrowRight,
     CalendarDays,
     CheckCircle2,
     Circle,
     Clock3,
-    ShieldCheck,
     Wifi,
     Trees,
     DoorOpen,
-    UploadCloud,
     Save,
     Send,
     Headphones,
     CloudUpload,
-    ImagePlus,
-    Menu,
-    X,
+    MessageSquare,
 } from "lucide-react";
 
+// DATA KOS
 const initialKos = [
     {
         id: 1,
@@ -50,6 +38,7 @@ const initialKos = [
     },
 ];
 
+// CHECKLIST PEMERIKSAAN
 const checklistGroups = [
     {
         title: "Kondisi",
@@ -79,6 +68,7 @@ const checklistGroups = [
     },
 ];
 
+// CHECKLIST YANG SUDAH DIPERIKSA
 const initialChecked = [
     "Dinding & lantai",
     "Ventilasi & cahaya",
@@ -90,19 +80,19 @@ const initialChecked = [
     "Kebisingan sekitar",
 ];
 
-const navItems = [
-    { label: "Dashboard", href: "/surveyor/dashboard", icon: LayoutDashboard },
-    { label: "Order tersedia", href: "/surveyor/order-tersedia", icon: MapPin },
-    { label: "Order survei", href: "/surveyor/order-survei", icon: ClipboardList, active: true },
-    { label: "Pesan", href: "/surveyor/pesan", icon: MessageSquare, badge: "2" },
-    { label: "Penghasilan", href: "/surveyor/penghasilan", icon: Wallet },
-];
+type Photo = {
+    name: string;
+    url: string;
+    size: string;
+};
 
 export default function DetailOrderSurveiPage() {
     const [activeKos, setActiveKos] = useState(1);
-    const [checkedItems, setCheckedItems] = useState<string[]>(initialChecked);
-    const [mobileMenu, setMobileMenu] = useState(false);
-    const [photos, setPhotos] = useState([
+
+    const [checkedItems, setCheckedItems] =
+        useState<string[]>(initialChecked);
+
+    const [photos, setPhotos] = useState<Photo[]>([
         {
             name: "kamar_melati.jpg",
             url: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600",
@@ -110,11 +100,18 @@ export default function DetailOrderSurveiPage() {
         },
     ]);
 
-    const [hargaSewa, setHargaSewa] = useState("Rp1.250.000 / bulan");
-    const [availability, setAvailability] = useState("1 kamar kosong");
+    const [hargaSewa, setHargaSewa] = useState(
+        "Rp1.250.000 / bulan"
+    );
+
+    const [availability, setAvailability] = useState(
+        "1 kamar kosong"
+    );
+
     const [condition, setCondition] = useState(
         "Kamar bersih, dinding tidak lembap, dan ventilasi baik. Air mengalir lancar. Wi-Fi termasuk biaya sewa, listrik menggunakan token terpisah. Parkir motor berpagar. Jalan bisa dilewati mobil, suasana cukup tenang pada pagi hari."
     );
+
     const [notes, setNotes] = useState(
         "Cocok untuk yang mencari kamar terang. Konfirmasi kecepatan Wi-Fi pada malam hari dan biaya deposit Rp500.000 dengan pemilik sebelum memesan."
     );
@@ -122,16 +119,20 @@ export default function DetailOrderSurveiPage() {
     const [saved, setSaved] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    // TOTAL CHECKLIST
     const totalChecked = checkedItems.length;
     const totalChecklist = 8;
+
     const progress = Math.round(
         (totalChecked / totalChecklist) * 100
     );
 
+    // KOS YANG SEDANG DIPILIH
     const selectedKos = initialKos.find(
         (kos) => kos.id === activeKos
     );
 
+    // HANDLE CHECKLIST
     function toggleChecklist(item: string) {
         setCheckedItems((prev) =>
             prev.includes(item)
@@ -142,36 +143,62 @@ export default function DetailOrderSurveiPage() {
         setSaved(false);
     }
 
+    // HANDLE UPLOAD FOTO
     function handlePhotoUpload(
-        event: React.ChangeEvent<HTMLInputElement>
+        event: ChangeEvent<HTMLInputElement>
     ) {
         const files = event.target.files;
 
         if (!files) return;
 
-        const newPhotos = Array.from(files).map((file) => ({
-            name: file.name,
-            url: URL.createObjectURL(file),
-            size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-        }));
+        const newPhotos: Photo[] = Array.from(files).map(
+            (file) => ({
+                name: file.name,
+                url: URL.createObjectURL(file),
+                size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+            })
+        );
 
         setPhotos((prev) => [...prev, ...newPhotos]);
         setSaved(false);
+
+        event.target.value = "";
     }
 
+    // HANDLE HAPUS FOTO
+    function handleRemovePhoto(index: number) {
+        setPhotos((prev) => {
+            const photo = prev[index];
+
+            if (photo.url.startsWith("blob:")) {
+                URL.revokeObjectURL(photo.url);
+            }
+
+            return prev.filter((_, i) => i !== index);
+        });
+
+        setSaved(false);
+    }
+
+    // HANDLE SIMPAN DRAFT
     function handleSaveDraft() {
         setSaved(true);
         alert("Draft laporan berhasil disimpan secara lokal.");
     }
 
+    // HANDLE KIRIM LAPORAN
     function handleSubmit() {
         if (totalChecked < totalChecklist) {
-            alert("Silakan selesaikan semua checklist terlebih dahulu.");
+            alert(
+                "Silakan selesaikan semua checklist terlebih dahulu."
+            );
             return;
         }
 
         if (photos.length === 0) {
-            alert("Tambahkan minimal satu foto bukti survei.");
+            alert(
+                "Tambahkan minimal satu foto bukti survei."
+            );
             return;
         }
 
@@ -179,188 +206,18 @@ export default function DetailOrderSurveiPage() {
 
         setTimeout(() => {
             setSubmitting(false);
-            alert("Simulasi: laporan siap dikirim. Belum terhubung ke backend.");
+
+            alert(
+                "Simulasi: laporan siap dikirim. Belum terhubung ke backend."
+            );
         }, 500);
     }
 
     return (
         <div className="min-h-screen bg-[#f4f6f2] text-[#203a36]">
 
-            {/* MOBILE MENU */}
-            {mobileMenu && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                    <div
-                        className="absolute inset-0 bg-black/40"
-                        onClick={() => setMobileMenu(false)}
-                    />
-
-                    <aside className="relative h-full w-72 bg-[#103f3a] p-5 text-white">
-                        <button
-                            onClick={() => setMobileMenu(false)}
-                            className="absolute right-4 top-4"
-                        >
-                            <X size={22} />
-                        </button>
-
-                        <div className="mb-8 rounded bg-white p-3 text-center">
-                            <span className="text-xl font-bold text-[#145b4b]">
-                                CKIN
-                            </span>
-                            <p className="text-xs text-gray-500">
-                                Cari Kost
-                            </p>
-                        </div>
-
-                        <p className="mb-3 text-xs text-white/50">
-                            WORKSPACE
-                        </p>
-
-                        {navItems.map((item) => {
-                            const Icon = item.icon;
-
-                            return (
-                                <Link
-                                    key={item.label}
-                                    href={item.href}
-                                    className={`mb-2 flex items-center gap-3 rounded-lg px-3 py-3 text-sm ${item.active
-                                        ? "bg-[#d9ed83] font-semibold text-[#17463d]"
-                                        : "text-white/70 hover:bg-white/10"
-                                        }`}
-                                >
-                                    <Icon size={18} />
-                                    {item.label}
-                                </Link>
-                            );
-                        })}
-                    </aside>
-                </div>
-            )}
-
-            {/* SIDEBAR */}
-            <aside className="fixed inset-y-0 left-0 z-30 hidden w-[162px] flex-col bg-[#103f3a] px-3 py-4 text-white lg:flex">
-                <div className="mb-5 flex h-[66px] items-center justify-center bg-white">
-                    <div className="text-center">
-                        <h1 className="text-2xl font-extrabold tracking-tight text-[#145b4b]">
-                            CKIN
-                        </h1>
-                        <p className="-mt-1 text-[9px] font-semibold text-[#145b4b]">
-                            Cari Kost
-                        </p>
-                    </div>
-                </div>
-
-                {/* PROFILE */}
-                <button className="mb-5 flex items-center gap-2 rounded-lg bg-white/10 p-2 text-left">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#d9ed83] text-[10px] font-bold text-[#17463d]">
-                        BW
-                    </div>
-                    <div className="min-w-0 flex-1">
-                        <p className="truncate text-[10px] font-semibold">
-                            Bima Wicaksono
-                        </p>
-                        <p className="text-[9px] text-white/60">
-                            Akun surveyor
-                        </p>
-                    </div>
-                    <ChevronDown size={12} />
-                </button>
-
-                <p className="mb-2 px-2 text-[9px] font-medium text-white/50">
-                    WORKSPACE
-                </p>
-
-                <nav className="flex flex-col gap-1">
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-
-                        return (
-                            <Link
-                                key={item.label}
-                                href={item.href}
-                                className={`flex items-center gap-2 rounded-md px-2 py-2.5 text-[10px] transition ${item.active
-                                    ? "bg-[#d9ed83] font-semibold text-[#17463d]"
-                                    : "text-white/65 hover:bg-white/10 hover:text-white"
-                                    }`}
-                            >
-                                <Icon size={14} />
-                                <span>{item.label}</span>
-
-                                {item.badge && (
-                                    <span className="ml-auto text-[9px]">
-                                        {item.badge}
-                                    </span>
-                                )}
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                <div className="mt-auto">
-                    <div className="mb-3 rounded-lg bg-white/10 p-3">
-                        <Headset size={17} className="mb-2 text-[#d9ed83]" />
-                        <p className="text-[10px] font-semibold">
-                            Ada yang bisa dibantu?
-                        </p>
-                        <p className="mt-2 text-[9px] leading-relaxed text-white/60">
-                            Tim CKIN siap menemani perjalanan cari kosmu.
-                        </p>
-                        <button className="mt-2 text-[9px] font-semibold text-[#d9ed83]">
-                            Hubungi bantuan ↗
-                        </button>
-                    </div>
-
-                    <Link
-                        href="/surveyor/pengaturan"
-                        className="flex items-center gap-2 px-2 py-2 text-[10px] text-white/60"
-                    >
-                        <Settings size={14} />
-                        Pengaturan akun
-                    </Link>
-
-                    <p className="mt-2 px-2 text-[9px] text-white/40">
-                        © 2026 CKIN
-                    </p>
-                </div>
-            </aside>
-
-            {/* MAIN CONTENT */}
-            <main className="min-h-screen lg:ml-[162px]">
-
-                {/* TOPBAR */}
-                <header className="sticky top-0 z-20 flex h-[54px] items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-7">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setMobileMenu(true)}
-                            className="lg:hidden"
-                        >
-                            <Menu size={21} />
-                        </button>
-
-                        <div className="text-[11px] text-gray-400">
-                            Workspace
-                            <span className="mx-2">/</span>
-                            <span className="font-medium text-[#203a36]">
-                                Order survei
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-[10px] text-gray-500">
-                        <span className="hidden sm:block">
-                            ID · Bahasa Indonesia
-                        </span>
-                        <Bell size={17} />
-                        <div className="hidden h-7 w-7 items-center justify-center rounded-full bg-[#e7f1ec] text-[9px] font-bold text-[#145b4b] sm:flex">
-                            BW
-                        </div>
-                        <span className="hidden font-semibold text-[#203a36] sm:block">
-                            Bima W.
-                        </span>
-                        <ChevronDown size={13} />
-                    </div>
-                </header>
-
-                <div className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-7">
+            <main className="min-h-screen">
+                <div className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
 
                     {/* BREADCRUMB */}
                     <Link
@@ -391,6 +248,7 @@ export default function DetailOrderSurveiPage() {
                             <span className="rounded-full bg-[#e6f1ec] px-3 py-1 text-[9px] font-semibold text-[#327568]">
                                 ● Dalam proses
                             </span>
+
                             <span className="rounded-full bg-[#e6f1ec] px-3 py-1 text-[9px] font-semibold text-[#327568]">
                                 ● Sudah dibayar
                             </span>
@@ -400,6 +258,7 @@ export default function DetailOrderSurveiPage() {
                     {/* ORDER INFORMATION */}
                     <section className="mb-5 grid gap-4 rounded-xl border border-gray-200 bg-white p-4 sm:grid-cols-[1fr_1.4fr_auto] sm:items-center">
 
+                        {/* CUSTOMER */}
                         <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e7f1ec] text-[10px] font-bold text-[#285d54]">
                                 AP
@@ -409,33 +268,48 @@ export default function DetailOrderSurveiPage() {
                                 <h3 className="text-[12px] font-semibold">
                                     Alya Putri
                                 </h3>
+
                                 <p className="text-[9px] text-gray-400">
                                     Customer · 2 kos pilihan pengguna
                                 </p>
                             </div>
 
-                            <button className="ml-auto rounded-lg border border-gray-200 px-3 py-2 text-[10px] font-semibold hover:bg-gray-50">
-                                <MessageSquare size={12} className="mr-1 inline" />
+                            <button
+                                type="button"
+                                className="ml-auto rounded-lg border border-gray-200 px-3 py-2 text-[10px] font-semibold hover:bg-gray-50"
+                            >
+                                <MessageSquare
+                                    size={12}
+                                    className="mr-1 inline"
+                                />
                                 Pesan
                             </button>
                         </div>
 
+                        {/* SCHEDULE */}
                         <div className="flex items-center gap-3 border-t border-gray-100 pt-3 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-                            <CalendarDays size={18} className="shrink-0" />
+                            <CalendarDays
+                                size={18}
+                                className="shrink-0"
+                            />
+
                             <div>
                                 <p className="text-[10px] font-medium">
                                     06 Nov 2026 · 09.00–12.00 WIB
                                 </p>
+
                                 <p className="text-[9px] text-gray-400">
                                     Mlati, Sleman · DI Yogyakarta
                                 </p>
                             </div>
                         </div>
 
+                        {/* SURVEYOR */}
                         <div className="border-t border-gray-100 pt-3 sm:border-0 sm:pt-0 sm:text-right">
                             <p className="text-[9px] text-gray-400">
                                 SURVEYOR
                             </p>
+
                             <p className="text-[10px] font-semibold">
                                 Bima Wicaksono
                             </p>
@@ -462,10 +336,13 @@ export default function DetailOrderSurveiPage() {
                                     {initialKos.map((kos) => (
                                         <button
                                             key={kos.id}
-                                            onClick={() => setActiveKos(kos.id)}
+                                            type="button"
+                                            onClick={() =>
+                                                setActiveKos(kos.id)
+                                            }
                                             className={`rounded-lg border p-3 text-left transition ${activeKos === kos.id
-                                                ? "border-[#356b63] bg-[#e8f1ec]"
-                                                : "border-gray-200 hover:bg-gray-50"
+                                                    ? "border-[#356b63] bg-[#e8f1ec]"
+                                                    : "border-gray-200 hover:bg-gray-50"
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between">
@@ -509,8 +386,8 @@ export default function DetailOrderSurveiPage() {
                                                     className="h-full rounded-full bg-[#28675b]"
                                                     style={{
                                                         width: `${activeKos === kos.id
-                                                            ? progress
-                                                            : (kos.completed / kos.total) * 100
+                                                                ? progress
+                                                                : (kos.completed / kos.total) * 100
                                                             }%`,
                                                     }}
                                                 />
@@ -560,11 +437,13 @@ export default function DetailOrderSurveiPage() {
                                                                     className="h-3 w-3 accent-[#145b4b]"
                                                                 />
 
-                                                                <span className={
-                                                                    checked
-                                                                        ? "text-[#365f58]"
-                                                                        : ""
-                                                                }>
+                                                                <span
+                                                                    className={
+                                                                        checked
+                                                                            ? "text-[#365f58]"
+                                                                            : ""
+                                                                    }
+                                                                >
                                                                     {item}
                                                                 </span>
                                                             </label>
@@ -609,13 +488,26 @@ export default function DetailOrderSurveiPage() {
                                                 className="h-32 w-full object-cover"
                                             />
 
-                                            <div className="p-2">
-                                                <p className="truncate text-[9px] font-medium">
-                                                    {photo.name}
-                                                </p>
-                                                <p className="mt-1 text-[9px] text-gray-400">
-                                                    {photo.size} · Berhasil diunggah ✓
-                                                </p>
+                                            <div className="flex items-center justify-between gap-2 p-2">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-[9px] font-medium">
+                                                        {photo.name}
+                                                    </p>
+
+                                                    <p className="mt-1 text-[9px] text-gray-400">
+                                                        {photo.size} · Berhasil diunggah ✓
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleRemovePhoto(index)
+                                                    }
+                                                    className="shrink-0 text-[9px] text-red-500 hover:underline"
+                                                >
+                                                    Hapus
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
@@ -734,6 +626,7 @@ export default function DetailOrderSurveiPage() {
 
                                 <div className="mt-4 flex items-center gap-2 text-[9px] text-gray-400">
                                     <CloudUpload size={13} />
+
                                     {saved
                                         ? "Draft berhasil disimpan secara lokal"
                                         : "Draft belum disimpan"}
@@ -746,6 +639,7 @@ export default function DetailOrderSurveiPage() {
                                     <p className="text-[10px] font-semibold">
                                         Laporan masih berupa draft
                                     </p>
+
                                     <p className="mt-1 text-[9px] text-gray-400">
                                         Lengkapi checklist, foto, dan temuan sebelum mengirim.
                                     </p>
@@ -753,6 +647,7 @@ export default function DetailOrderSurveiPage() {
 
                                 <div className="flex gap-2">
                                     <button
+                                        type="button"
                                         onClick={handleSaveDraft}
                                         className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2.5 text-[10px] font-semibold hover:bg-gray-50"
                                     >
@@ -761,6 +656,7 @@ export default function DetailOrderSurveiPage() {
                                     </button>
 
                                     <button
+                                        type="button"
                                         onClick={handleSubmit}
                                         disabled={
                                             submitting ||
@@ -770,6 +666,7 @@ export default function DetailOrderSurveiPage() {
                                         className="flex items-center gap-2 rounded-lg bg-[#145b4b] px-3 py-2.5 text-[10px] font-semibold text-white hover:bg-[#10463b] disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <Send size={13} />
+
                                         {submitting
                                             ? "Mengirim..."
                                             : "Kirim laporan"}
@@ -796,6 +693,7 @@ export default function DetailOrderSurveiPage() {
                                         <span className="text-gray-400">
                                             Anggaran / bulan
                                         </span>
+
                                         <strong>Rp1–1,5 juta</strong>
                                     </div>
 
@@ -803,6 +701,7 @@ export default function DetailOrderSurveiPage() {
                                         <span className="text-gray-400">
                                             Rencana pindah
                                         </span>
+
                                         <strong>November 2026</strong>
                                     </div>
 
@@ -811,7 +710,10 @@ export default function DetailOrderSurveiPage() {
                                     </div>
                                 </div>
 
-                                <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-2 text-[10px] font-semibold hover:bg-gray-50">
+                                <button
+                                    type="button"
+                                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-2 text-[10px] font-semibold hover:bg-gray-50"
+                                >
                                     <MessageSquare size={13} />
                                     Lihat percakapan
                                 </button>
@@ -828,6 +730,7 @@ export default function DetailOrderSurveiPage() {
                                         <span className="text-gray-400">
                                             Jumlah kos
                                         </span>
+
                                         <strong>2 kos</strong>
                                     </div>
 
@@ -835,6 +738,7 @@ export default function DetailOrderSurveiPage() {
                                         <span className="text-gray-400">
                                             Pendapatan per kos
                                         </span>
+
                                         <strong>Rp75.000</strong>
                                     </div>
 
@@ -843,6 +747,7 @@ export default function DetailOrderSurveiPage() {
                                             <span className="text-[10px] text-gray-400">
                                                 Pendapatan bersih
                                             </span>
+
                                             <strong className="text-sm">
                                                 Rp150.000
                                             </strong>
@@ -887,7 +792,7 @@ export default function DetailOrderSurveiPage() {
                                             desc: "Dana dilepas setelah laporan diterima",
                                             done: false,
                                         },
-                                    ].map((step, index) => (
+                                    ].map((step) => (
                                         <div
                                             key={step.title}
                                             className="flex items-start gap-3"
@@ -944,17 +849,23 @@ export default function DetailOrderSurveiPage() {
 
                     {/* FOOTER */}
                     <footer className="mt-8 flex flex-wrap justify-between gap-3 pb-4 text-[9px] text-gray-400">
-                        <span>©CKIN — cek dulu, baru pindah.</span>
+                        <span>
+                            ©CKIN — cek dulu, baru pindah.
+                        </span>
 
                         <div className="flex gap-3">
                             <span className="cursor-pointer hover:text-[#285d54]">
                                 Pusat bantuan
                             </span>
+
                             <span>·</span>
+
                             <span className="cursor-pointer hover:text-[#285d54]">
                                 Syarat & ketentuan
                             </span>
+
                             <span>·</span>
+
                             <span className="cursor-pointer hover:text-[#285d54]">
                                 Privasi
                             </span>

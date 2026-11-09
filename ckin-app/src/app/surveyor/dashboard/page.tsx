@@ -269,10 +269,6 @@ export default function SurveyorDashboard() {
                         )}
 
                     </div>
-
-                    <button className="mt-4 flex items-center gap-1 text-sm font-semibold text-[#285d54] sm:hidden">
-                        Lihat semua order <ArrowRight size={16} />
-                    </button>
                 </div>
 
                 {/* Surveyor Information */}
@@ -339,9 +335,17 @@ export default function SurveyorDashboard() {
                     </div>
 
                     <div className="flex gap-5 text-sm">
-                        <button className="hidden items-center gap-1 text-sm font-semibold text-[#285d54] hover:text-[#43877a] sm:flex">
-                            Lihat semua order <ArrowRight size={16} />
-                        </button>
+                        <Link
+                            href="/surveyor/order-survei"
+                            className="inline-flex items-center gap-2 font-semibold text-[#145b4b] transition-colors hover:text-[#0d4036] group"
+                        >
+                            Lihat semua order
+
+                            <ArrowRight
+                                size={20}
+                                className="transition-transform group-hover:translate-x-1"
+                            />
+                        </Link>
                     </div>
                 </div>
 
