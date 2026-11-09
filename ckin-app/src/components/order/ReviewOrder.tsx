@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getDraft, makeOrderPayload, clearDraft } from "@/src/lib/order-draft";
 import type { OrderDraft } from "@/src/types/order";
 import { formatRupiah, getTotal } from "@/src/types/order";
-import { Panel, primaryButton } from "./ui";
+import { Panel, primaryButton, secondaryButton } from "./ui";
 
 export default function ReviewOrder() {
     const router = useRouter();
@@ -38,7 +38,7 @@ export default function ReviewOrder() {
 
             if (!res.ok) throw new Error(json.message ?? "Gagal membuat pesanan");
 
-            // clearDraft()
+            clearDraft()
             sessionStorage.setItem("ckin-current-order-id", json.data._id);
             router.push(`/pembayaran?orderId=${json.data._id}`);
             // router.push(`/pembayaran/${json.data._id}`);
@@ -68,9 +68,9 @@ export default function ReviewOrder() {
                             {d.surveyLocation.province}
                         </p>
                         <p>
-                            <span className="text-[#829088]">Tanggal survei</span>
+                            <span className="text-[#829088]">Sumber kos</span>
                             <br />
-                            {d.surveyDate}
+                            {user ? "Pilihan sendiri" : "Rekomendasi surveyor"}
                         </p>
                         <p>
                             <span className="text-[#829088]">Jumlah kos</span>
@@ -78,9 +78,14 @@ export default function ReviewOrder() {
                             {d.kosCount} kos
                         </p>
                         <p>
-                            <span className="text-[#829088]">Sumber kos</span>
+                            <span className="text-[#829088]">Tanggal survei</span>
                             <br />
-                            {user ? "Pilihan sendiri" : "Rekomendasi surveyor"}
+                            {d.surveyDate}
+                        </p>
+                        <p>
+                            <span className="text-[#829088]">Tanggal masuk kos</span>
+                            <br />
+                            {d.moveInDate}
                         </p>
                     </div>
                 </Panel>
@@ -150,6 +155,9 @@ export default function ReviewOrder() {
                         </div>
                     </Panel>
                 )}
+                <button className={secondaryButton} onClick={() => router.back()}>
+                    ← Kembali
+                </button>
                 {error && (
                     <p role="alert" className="text-xs text-red-600">
                         {error}
