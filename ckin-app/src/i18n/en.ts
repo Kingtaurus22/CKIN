@@ -1231,7 +1231,7 @@ export const EN_PATTERNS: Array<[RegExp, Replacer]> = [
   [/^(\d+) pesan belum dibaca$/, "$1 unread messages"],
   [/^(\d+) pesanan tercatat$/, "$1 orders recorded"],
   [/^(\d+) pesanan ditampilkan$/, "$1 orders shown"],
-  [/^Kamu: (.*)$/s, "You: $1"],
+  [/^Kamu: ([\s\S]*)$/, "You: $1"],
   [/^Hari ini, (.+)$/, (_, d) => `Today, ${d}`],
   [/^Kemarin, (.+)$/, (_, d) => `Yesterday, ${d}`],
   [/^Tulis pesan untuk (.+)…$/, "Write a message to $1…"],

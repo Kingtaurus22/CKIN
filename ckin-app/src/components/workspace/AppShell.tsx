@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import Icon, { type IconName } from "@/src/components/ui/Icon";
 import Logo from "@/src/components/ui/Logo";
 import { initials, shortName } from "@/src/lib/format";
@@ -62,6 +62,33 @@ function isActive(pathname: string, href: string, role: Role) {
   return pathname.startsWith(href);
 }
 
+/**
+ * Baca pathname di dalam <Suspense>. Wajib saat cacheComponents aktif: untuk route
+ * dinamis ([id]) pathname baru diketahui saat runtime, dan usePathname() di layout
+ * tanpa Suspense membuat `next build` gagal (CLIENT_HOOK_DYNAMIC).
+ * Saat prerender, fallback dirender dengan pathname kosong.
+ */
+function ReadPathname({ children }: { children: (pathname: string) => ReactNode }) {
+  return <>{children(usePathname())}</>;
+}
+
+function WithPathname({ children }: { children: (pathname: string) => ReactNode }) {
+  return (
+    <Suspense fallback={children("")}>
+      <ReadPathname>{children}</ReadPathname>
+    </Suspense>
+  );
+}
+
+/** Jalankan onChange setiap kali pindah halaman. */
+function OnRouteChange({ pathname, onChange }: { pathname: string; onChange: () => void }) {
+  useEffect(() => {
+    onChange();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+  return null;
+}
+
 function Sidebar({
   open,
   onNavigate,
@@ -72,7 +99,6 @@ function Sidebar({
   onHelp: () => void;
 }) {
   const { role, user, unreadMessages } = useWorkspace();
-  const pathname = usePathname();
 
   return (
     <aside className={`sidebar ${open ? "open" : ""}`} aria-label="Navigasi utama">
@@ -90,6 +116,8 @@ function Sidebar({
       </Link>
 
       <p className="nav-label">Workspace</p>
+      <WithPathname>
+        {(pathname) => (
       <nav className="nav">
         {NAV[role].map((item) => {
           const active = isActive(pathname, item.href, role);
@@ -112,6 +140,8 @@ function Sidebar({
           );
         })}
       </nav>
+        )}
+      </WithPathname>
 
       {role !== "admin" && (
         <div className="help-card">
@@ -125,13 +155,17 @@ function Sidebar({
       )}
 
       {role !== "admin" && (
-        <Link
-          href={`/${role}/settings`}
-          className={`sidebar-settings ${pathname.startsWith(`/${role}/settings`) ? "active" : ""}`}
-          onClick={onNavigate}
-        >
-          <Icon name="settings" size={17} /> Pengaturan akun
-        </Link>
+        <WithPathname>
+          {(pathname) => (
+            <Link
+              href={`/${role}/settings`}
+              className={`sidebar-settings ${pathname.startsWith(`/${role}/settings`) ? "active" : ""}`}
+              onClick={onNavigate}
+            >
+              <Icon name="settings" size={17} /> Pengaturan akun
+            </Link>
+          )}
+        </WithPathname>
       )}
       <p className="sidebar-copy">© 2026 CKIN</p>
     </aside>
@@ -140,7 +174,6 @@ function Sidebar({
 
 function Topbar({ onMenu }: { onMenu: () => void }) {
   const { role, user, logout } = useWorkspace();
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -166,7 +199,9 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
         </button>
         <Link href={`/${role}`}>Workspace</Link>
         <span>/</span>
-        <strong>{crumbFor(pathname, role)}</strong>
+        <strong>
+          <WithPathname>{(pathname) => (pathname ? crumbFor(pathname, role) : "")}</WithPathname>
+        </strong>
       </div>
 
       <div className="topbar-actions">
@@ -214,14 +249,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const { role, user } = useWorkspace();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   return (
     <div className="app-shell">
+      {/* Tutup menu mobile setiap pindah halaman. */}
+      <WithPathname>{(pathname) => <OnRouteChange pathname={pathname} onChange={() => setMenuOpen(false)} />}</WithPathname>
       <Sidebar
         open={menuOpen}
         onNavigate={() => setMenuOpen(false)}
@@ -246,13 +278,17 @@ function ShellFrame({ children }: { children: ReactNode }) {
         </footer>
       </div>
       {role !== "admin" && (
-        <AssistantWidget
-          hideFab={pathname.includes("/messages")}
-          role={role}
-          open={assistantOpen}
-          onOpenChange={setAssistantOpen}
-          userName={user?.fullname ?? ""}
-        />
+        <WithPathname>
+          {(pathname) => (
+            <AssistantWidget
+              hideFab={pathname.includes("/messages")}
+              role={role}
+              open={assistantOpen}
+              onOpenChange={setAssistantOpen}
+              userName={user?.fullname ?? ""}
+            />
+          )}
+        </WithPathname>
       )}
     </div>
   );

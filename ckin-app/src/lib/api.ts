@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { AuthError } from "./auth/session";
+import { unstable_rethrow } from "next/navigation";
 
 /** Error yang aman ditampilkan ke pengguna, lengkap dengan status HTTP. */
 export class ApiError extends Error {
@@ -20,8 +21,18 @@ export function fail(message: string, status = 400) {
   return NextResponse.json({ success: false, message }, { status });
 }
 
+function isPrerenderBailout(error: unknown) {
+  const digest = (error as { digest?: unknown } | null)?.digest;
+  return digest === "HANGING_PROMISE_REJECTION" || digest === "NEXT_PRERENDER_INTERRUPTED";
+}
+
 /** Ubah error apa pun menjadi response JSON yang konsisten. */
 export function handleApiError(error: unknown, context: string) {
+  // Error internal Next.js (prerender, redirect, notFound) diteruskan ke Next.js.
+  unstable_rethrow(error);
+  // Saat build, route GET yang membaca cookies() berhenti di-prerender. Itu normal, tidak perlu di-log.
+  if (isPrerenderBailout(error)) return fail("Prerender dilewati.", 500);
+
   if (error instanceof AuthError || error instanceof ApiError) {
     return fail(error.message, error.status);
   }
