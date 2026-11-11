@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import MessagesWorkspace from "@/src/components/chat/MessagesWorkspace";
 import PageFallback from "@/src/components/ui/PageFallback";
 
+export const instant = false;
+
 export const metadata: Metadata = { title: "Pesan" };
 
 type Props = { params: Promise<{ orderId: string }> };

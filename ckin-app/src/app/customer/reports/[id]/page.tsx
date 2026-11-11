@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import CustomerReport from "@/src/components/customer/CustomerReport";
 import PageFallback from "@/src/components/ui/PageFallback";
 
+export const instant = false;
+
 export const metadata: Metadata = { title: "Laporan survei" };
 
 type Props = { params: Promise<{ id: string }> };
