@@ -8,16 +8,17 @@ import { firstName, formatRupiah, initials, regionLabel, shortCity } from "@/src
 import type { SurveyorDashboardData } from "@/src/types/surveyor";
 import { SurveyorOrdersTable } from "./MyOrders";
 import { budgetShort, dayMonth, genderLabel, slotText, useApi } from "./shared";
+import { useEffect, useState } from "react";
 
-function greeting() {
-  const hour = Number(
-    new Date().toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "Asia/Jakarta" }),
-  );
-  if (hour < 11) return "Selamat pagi";
-  if (hour < 15) return "Selamat siang";
-  if (hour < 18) return "Selamat sore";
-  return "Selamat malam";
-}
+// function greeting() {
+//   const hour = Number(
+//     new Date().toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "Asia/Jakarta" }),
+//   );
+//   if (hour < 11) return "Selamat pagi";
+//   if (hour < 15) return "Selamat siang";
+//   if (hour < 18) return "Selamat sore";
+//   return "Selamat malam";
+// }
 
 /**
  * Dashboard surveyor.
@@ -26,15 +27,30 @@ function greeting() {
  */
 export default function SurveyorHome() {
   const { user, loading } = useWorkspace();
+  const [greeting, setGreeting] = useState<string>()
   const dash = useApi<SurveyorDashboardData>("/api/surveyor/dashboard");
   const d = dash.data;
   const status = user?.verificationStatus ?? "PENDING";
+
+  useEffect(() => {
+    const hour = Number(
+      new Date().toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "Asia/Jakarta" }),
+    );
+    const greet = () => {
+      if (hour < 11) return "Selamat pagi";
+      if (hour < 15) return "Selamat siang";
+      if (hour < 18) return "Selamat sore";
+      return "Selamat malam";
+    }
+
+    setGreeting(greet)
+  })
 
   return (
     <>
       <PageHeader
         eyebrow="Ruang surveyor"
-        title={`${greeting()}, ${firstName(user?.fullname) || "Surveyor"}. Siap bantu hari ini?`}
+        title={`${greeting}, ${firstName(user?.fullname) || "Surveyor"}. Siap bantu hari ini?`}
         subtitle="Temukan order di sekitarmu dan kelola setiap survei dengan rapi."
         actions={
           user && (
