@@ -28,6 +28,37 @@ const WITHDRAW_STATUS = {
   REJECTED: { label: "Ditolak", tone: "danger" },
 } as const;
 
+const LIST_BANKS = [
+    "Bank BCA",
+    "Bank BNI",
+    "Bank BRI",
+    "Bank Mandiri",
+    "Bank BTN",
+    "Bank Syariah Indonesia (BSI)",
+    "Bank CIMB Niaga",
+    "Bank Danamon",
+    "Bank Permata",
+    "Bank OCBC",
+    "Bank Panin",
+    "Bank Mega",
+    "Bank Maybank Indonesia",
+    "Bank Sinarmas",
+    "Bank Jago",
+    "Bank Neo Commerce",
+    "Bank BTPN",
+    "Bank HSBC Indonesia",
+    "Bank UOB Indonesia",
+    "Bank DBS Indonesia",
+    "Bank Muamalat",
+    "Bank DKI",
+    "Bank BJB",
+    "Bank Jateng",
+    "Bank Jatim",
+    "Bank Nagari",
+    "Bank Sumut",
+    "Bank Kaltimtara",
+];
+
 /** Halaman "Penghasilan" surveyor: ringkasan, tren, rincian, tarik dana, riwayat pencairan. */
 export default function Earnings() {
   const { user } = useWorkspace();
@@ -235,16 +266,24 @@ export default function Earnings() {
             ) : (
               <div className="stack" style={{ gap: 12, margin: "16px 0" }}>
                 <div className="field">
-                  <label className="label" htmlFor="bank-name">
-                    Nama bank
-                  </label>
-                  <input
-                    id="bank-name"
-                    className="input"
-                    placeholder="Bank BCA"
-                    value={bank.bankName}
-                    onChange={(e) => setBank({ ...bank, bankName: e.target.value })}
-                  />
+                    <label className="label" htmlFor="bank-name">
+                      Nama bank
+                    </label>
+                    <select
+                      id="bank-name"
+                      className="input"
+                      value={bank.bankName}
+                      onChange={(e) =>setBank({...bank,bankName: e.target.value,})}
+                    >
+                      <option value="" disabled>
+                        Pilih bank
+                      </option>
+                      {LIST_BANKS.map((bankName) => (
+                        <option key={bankName} value={bankName}>
+                          {bankName}
+                        </option>
+                      ))}
+                    </select>
                 </div>
                 <div className="field">
                   <label className="label" htmlFor="bank-number">

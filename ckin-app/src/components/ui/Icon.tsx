@@ -58,6 +58,7 @@ const PATHS = {
   arrowLeft: <path d="M19 12H5M11 18l-6-6 6-6" />,
   arrowUpRight: <path d="M7 17 17 7M8 7h9v9" />,
   arrowDownLeft: <path d="M17 7 7 17M16 17H7V8" />,
+  arrowDownUp: <path d="m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16" />,
   plus: <path d="M12 5v14M5 12h14" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   checkDouble: <path d="m2.5 12.5 4 4L15 8M10 15.5l1 1L19.5 8" />,

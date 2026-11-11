@@ -267,11 +267,11 @@ export default function MessagesWorkspace({ orderId }: { orderId?: string }) {
                 </p>
               )}
               <Composer
-                placeholder={`Tulis pesan untuk ${firstName(active.peer.name)}…`}
+                placeholder={active.status === "CANCELLED" || active.status === "EXPIRED" || active.status === "COMPLETED" ? `Sesi chat ini sudah berakhir.` : `Tulis pesan untuk ${firstName(active.peer.name)}…`}
                 sending={conversation.sending}
                 onSend={handleSend}
                 onTyping={conversation.notifyTyping}
-                disabled={active.status === "CANCELLED" || active.status === "EXPIRED"}
+                disabled={active.status === "CANCELLED" || active.status === "EXPIRED" || active.status === "COMPLETED"}
               />
             </>
           )}

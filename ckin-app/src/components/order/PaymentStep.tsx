@@ -22,7 +22,7 @@ export default function PaymentStep({ id }: { id: string }) {
   const [order, setOrder] = useState<CustomerOrderDetail | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [method, setMethod] = useState<PaymentMethod>("saldo");
-  const [accepted, setAccepted] = useState(true);
+  const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [notFound, setNotFound] = useState(false);
@@ -241,7 +241,12 @@ export default function PaymentStep({ id }: { id: string }) {
               </p>
               <label className="check" style={{ marginBottom: 16 }}>
                 <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
-                Saya menyetujui ketentuan pembayaran.
+                <span>
+                  Saya menyetujui {" "}
+                  <a href={`/syarat-ketentuan#s4`} target="_blank" rel="noreferrer" className="legal-link">
+                    ketentuan pembayaran
+                  </a>.
+                </span>
               </label>
               {error && (
                 <div className="alert alert-danger" role="alert" style={{ marginBottom: 14 }}>

@@ -30,6 +30,7 @@ export default function OpenOrders() {
   const [areas, setAreas] = useState<string[] | null>(null); // null = semua area
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [taking, setTaking] = useState(false);
@@ -50,7 +51,22 @@ export default function OpenOrders() {
     });
   }, [data, coverage, activeAreas, from, to]);
 
-  const selected = filtered.find((o) => o.id === selectedId) ?? filtered[0] ?? null;
+  const sortedOrders = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const dateA = dateKey(a.surveyDate);
+      const dateB = dateKey(b.surveyDate);
+
+      const dateComparison = dateA.localeCompare(dateB);
+
+      setSelectedId(null)
+
+      return sortOrder === "asc"
+        ? dateComparison
+        : -dateComparison;
+    });
+  }, [filtered, sortOrder]);
+
+  const selected = filtered.find((o) => o.id === selectedId) ?? null;
   const quotaFull = data ? data.activeCount >= data.maxActive : false;
   const busyDates = new Set(data?.activeDates ?? []);
   const dateTaken = (o: SurveyorOrderCard | null) => (o ? busyDates.has(dateKey(o.surveyDate)) : false);
@@ -197,7 +213,13 @@ export default function OpenOrders() {
         <div className="stack">
           <div className="sv-list-head">
             <strong>{loading ? "Memuat order…" : `${filtered.length} order sesuai filter`}</strong>
-            <span className="muted">Urutkan: Jadwal terdekat ↓</span>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setSortOrder((prev) => prev === "asc" ? "desc" : "asc")}
+            >
+              <Icon name="arrowDownUp" size={14} />Jadwal {sortOrder === "asc" ? "terdekat ↑" : "terjauh ↓"}
+            </button>
           </div>
 
           {loading && [0, 1, 2].map((i) => <Skeleton key={i} height={190} style={{ borderRadius: 14 }} />)}
@@ -211,7 +233,7 @@ export default function OpenOrders() {
             </div>
           )}
 
-          {filtered.map((o) => {
+          {sortedOrders.map((o) => {
             const isSelected = selected?.id === o.id;
             return (
               <article key={o.id} className={`card sv-order ${isSelected ? "selected" : ""}`}>

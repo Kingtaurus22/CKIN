@@ -282,10 +282,10 @@ export default function CustomerReport({ id }: { id: string }) {
                   <span>Harga sewa / bulan</span>
                   <strong className="big">{item.price !== null ? formatRupiah(item.price) : "-"}</strong>
                 </div>
-                <div>
+                {/* <div>
                   <span>Ukuran &amp; tipe</span>
                   <strong>{[item.size, item.genderPreference].filter(Boolean).join(" · ") || "-"}</strong>
-                </div>
+                </div> */}
                 <div>
                   <span>Ketersediaan</span>
                   <strong className="ok">{item.availability ?? "-"}</strong>

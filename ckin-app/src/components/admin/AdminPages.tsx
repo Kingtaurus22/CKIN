@@ -160,7 +160,7 @@ export function AdminSurveyors() {
                 </div>
               )}
             </div>
-            {s.experience && <p className="muted sv-par">{s.experience}</p>}
+            {s.experience && <p className="muted sv-par wrap-break-word">{s.experience}</p>}
             {s.rejectionReason && <p className="danger-text sv-par">Alasan ditolak: {s.rejectionReason}</p>}
             <div className="admin-docs">
               {s.ktpUrl ? (

@@ -139,7 +139,7 @@ const RULES: Array<{ intent: Intent; role?: "customer" | "surveyor"; words: RegE
   { intent: "greeting", words: /^(halo|hai|hi|hello|hey|pagi|siang|sore|malam|selamat (pagi|siang|sore|malam)|assalamualaikum|permisi)\b[\s!.,?]*$/ , weight: 5 },
   { intent: "thanks", words: /\b(makasih|terima ?kasih|trims|thanks?|thank you|thx|ok(e|ay)? (makasih|thanks))\b/, weight: 4 },
   { intent: "human", words: /\b(admin|cs|customer service|manusia|orang asli|komplain|keluhan|lapor|complain|human|agent)\b/ },
-  { intent: "refund_cancel", role: "customer", words: /\b(batal\w*|cancel\w*|refund\w*|pengembalian|uang kembali|dikembalikan|money back)\b/, weight: 3 },
+  { intent: "refund_cancel", role: "customer", words: /\b(membatalkan|batal\w*|cancel\w*|refund\w*|pengembalian|uang kembali|dikembalikan|money back)\b/, weight: 3 },
   { intent: "topup", role: "customer", words: /\b(top ?up|isi saldo|tambah saldo|biaya admin|admin fee|deposit)\b/, weight: 3 },
   { intent: "transactions", role: "customer", words: /\b(riwayat|transaksi|history|mutasi|transactions?)\b/, weight: 2 },
   { intent: "balance", role: "customer", words: /\b(saldo|balance|wallet|dompet)\b/, weight: 2 },
@@ -163,7 +163,7 @@ const RULES: Array<{ intent: Intent; role?: "customer" | "surveyor"; words: RegE
   { intent: "sv_orders", role: "surveyor", words: /\b(order|pesanan|survei|survey|jadwal|schedule|berjalan|ongoing|aktif|active)\b/, weight: 1 },
 ];
 
-const CODE_RE = /\b([a-z]{2,4}-\d{4,})\b/i;
+const CODE_RE = /\b([a-z]{2,4}-[a-z0-9]{6})\b/i
 
 export function detectIntent(question: string, role: "customer" | "surveyor"): { intent: Intent; code: string | null } {
   const q = question.toLowerCase().replace(/\s+/g, " ").trim();
@@ -238,8 +238,8 @@ const ACTIVE: CanonicalStatus[] = ["PENDING_PAYMENT", "WAITING_SURVEYOR", "ASSIG
 export function scopeMessage(lang: Lang, role: "customer" | "surveyor") {
   return L(
     lang,
-    `Maaf, saya hanya bisa membantu pertanyaan seputar CKIN, misalnya ${role === "customer" ? "status pesanan, pembayaran, saldo & top up, pembatalan/refund, jadwal, dan laporan survei" : "aturan ambil order, order berjalan, laporan, penghasilan, dana tertahan, dan tarik dana"}. Coba tanyakan salah satunya, atau sebutkan nomor pesanan (mis. SGH-261102).`,
-    `Sorry, I can only help with CKIN topics, such as ${role === "customer" ? "order status, payment, balance & top-ups, cancellation/refunds, schedules, and survey reports" : "order-taking rules, ongoing orders, reports, earnings, held funds, and withdrawals"}. Try one of those, or mention an order number (e.g. SGH-261102).`,
+    `Maaf, saya hanya bisa membantu pertanyaan seputar CKIN, misalnya ${role === "customer" ? "status pesanan, pembayaran, saldo & top up, pembatalan/refund, jadwal, dan laporan survei" : "aturan ambil order, order berjalan, laporan, penghasilan, dana tertahan, dan tarik dana"}. Coba tanyakan salah satunya, atau sebutkan nomor pesanan (mis. CKIN-1A2B3C).`,
+    `Sorry, I can only help with CKIN topics, such as ${role === "customer" ? "order status, payment, balance & top-ups, cancellation/refunds, schedules, and survey reports" : "order-taking rules, ongoing orders, reports, earnings, held funds, and withdrawals"}. Try one of those, or mention an order number (e.g. CKIN-1A2B3C).`,
   );
 }
 

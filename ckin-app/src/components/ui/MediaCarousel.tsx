@@ -100,14 +100,6 @@ export default function MediaCarousel({ media, title }: { media: CarouselMedia[]
       </div>
 
       <div className="mc-strip-wrap">
-        <button
-          type="button"
-          className="mc-strip-btn"
-          onClick={() => stripRef.current?.scrollBy({ left: -300, behavior: "smooth" })}
-          aria-label="Geser thumbnail ke kiri"
-        >
-          <Icon name="chevronRight" size={18} style={{ transform: "rotate(180deg)" }} />
-        </button>
         <div className="mc-strip" ref={stripRef}>
           {media.map((m, i) => (
             <button
@@ -132,14 +124,6 @@ export default function MediaCarousel({ media, title }: { media: CarouselMedia[]
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="mc-strip-btn"
-          onClick={() => stripRef.current?.scrollBy({ left: 300, behavior: "smooth" })}
-          aria-label="Geser thumbnail ke kanan"
-        >
-          <Icon name="chevronRight" size={18} />
-        </button>
       </div>
 
       {lightbox && (

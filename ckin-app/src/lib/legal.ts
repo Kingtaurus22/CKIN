@@ -52,9 +52,34 @@ export const CUSTOMER_TERMS: LegalDoc = {
     {
       title: b("4. Biaya & pembayaran", "4. Fees & payment"),
       points: [
-        b(`Biaya survei ${rp(PRICE_PER_KOS)} per kos ditambah biaya layanan ${rp(SERVICE_FEE)} per pesanan.`, `The survey fee is ${rp(PRICE_PER_KOS)} per kos plus a ${rp(SERVICE_FEE)} service fee per order.`),
-        b(`Pembayaran dilakukan dengan Saldo CKIN atau melalui Midtrans (Virtual Account, QRIS, e-wallet) paling lambat ${PAYMENT_WINDOW_HOURS} jam setelah pesanan dibuat. Pesanan yang tidak dibayar akan kedaluwarsa.`, `Payment is made with your CKIN balance or via Midtrans (Virtual Account, QRIS, e-wallet) within ${PAYMENT_WINDOW_HOURS} hours of ordering. Unpaid orders expire.`),
-        b("Pesanan baru terlihat oleh surveyor setelah pembayaran terkonfirmasi.", "Orders are visible to surveyors only after payment is confirmed."),
+        b(
+          `Biaya survei adalah ${rp(PRICE_PER_KOS)} per kos ditambah biaya layanan ${rp(SERVICE_FEE)} per pesanan. Total biaya ditampilkan sebelum customer melakukan pembayaran.`,
+          `The survey fee is ${rp(PRICE_PER_KOS)} per kos plus a ${rp(SERVICE_FEE)} service fee per order. The total amount is displayed before the customer makes payment.`
+        ),
+        b(
+          `Customer wajib menyelesaikan pembayaran dalam waktu ${PAYMENT_WINDOW_HOURS} jam sejak pesanan dibuat. Pesanan yang belum dibayar setelah batas waktu tersebut akan kedaluwarsa secara otomatis.`,
+          `Customers must complete payment within ${PAYMENT_WINDOW_HOURS} hours after placing an order. Orders that remain unpaid after this period will automatically expire.`
+        ),
+        b(
+          "Metode pembayaran yang tersedia meliputi Saldo CKIN dan metode pembayaran yang disediakan melalui Midtrans, seperti Virtual Account, QRIS, dan e-wallet. Ketersediaan metode pembayaran mengikuti layanan penyedia pembayaran.",
+          "Available payment methods include CKIN Balance and payment methods provided through Midtrans, such as Virtual Account, QRIS, and e-wallets. Payment method availability is subject to the payment provider."
+        ),
+        b(
+          "Pesanan hanya akan ditampilkan kepada surveyor setelah pembayaran berhasil dikonfirmasi oleh sistem CKIN.",
+          "Orders will only be made available to surveyors after payment has been successfully confirmed by CKIN's system."
+        ),
+        b(
+          "Customer bertanggung jawab memastikan nominal pembayaran dan detail transaksi sudah benar sebelum menyelesaikan pembayaran.",
+          "Customers are responsible for ensuring that the payment amount and transaction details are correct before completing payment."
+        ),
+        b(
+          "Jika pembayaran berhasil tetapi status pesanan belum diperbarui, customer dapat menghubungi bantuan CKIN dengan menyertakan nomor pesanan dan bukti transaksi.",
+          "If payment succeeds but the order status has not been updated, customers may contact CKIN support with their order number and transaction proof."
+        ),
+        b(
+          "CKIN tidak bertanggung jawab atas keterlambatan atau kegagalan transaksi yang disebabkan oleh gangguan bank, jaringan, atau penyedia layanan pembayaran di luar kendali CKIN.",
+          "CKIN is not responsible for transaction delays or failures caused by bank, network, or payment provider disruptions beyond CKIN's control."
+        ),
       ],
     },
     {
